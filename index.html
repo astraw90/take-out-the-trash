@@ -672,3 +672,9 @@
   document.getElementById('trashCan').addEventListener('click', function() {
     this.classList.add('wobble');
     var self = this;
+    setTimeout(function() { self.classList.remove('wobble'); }, 600);
+  });
+</script>
+
+</body>
+</html>
