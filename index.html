@@ -495,32 +495,21 @@
     submitStatus.textContent = 'Saving to Notion...';
     submitStatus.className = 'submit-status saving';
 
-    // Hidden iframe + form approach (reliable with Google Apps Script)
-    var iframeName = 'trash_submit_' + Date.now();
-    var iframe = document.createElement('iframe');
-    iframe.name = iframeName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+    // Build URL with query parameters (GET request via fetch)
+    // This avoids all cookie/CORS/redirect issues in private browsers
+    var url = APPS_SCRIPT_URL
+      + '?idea=' + encodeURIComponent(idea)
+      + '&name=' + encodeURIComponent(name);
 
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = APPS_SCRIPT_URL;
-    form.target = iframeName;
-    form.style.display = 'none';
-
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'payload';
-    input.value = JSON.stringify({ idea: idea, name: name });
-    form.appendChild(input);
-
-    document.body.appendChild(form);
-    form.submit();
-
-    setTimeout(function() {
-      submitStatus.textContent = '';
-      try { form.remove(); iframe.remove(); } catch(e) {}
-    }, 3000);
+    fetch(url, { mode: 'no-cors', credentials: 'omit' })
+      .then(function() {
+        submitStatus.textContent = '';
+      })
+      .catch(function(err) {
+        console.error('Submit error:', err);
+        submitStatus.textContent = 'Could not reach server — tell Andrew!';
+        submitStatus.className = 'submit-status error';
+      });
   }
 
   function playTossAnimation(idea) {
@@ -683,9 +672,3 @@
   document.getElementById('trashCan').addEventListener('click', function() {
     this.classList.add('wobble');
     var self = this;
-    setTimeout(function() { self.classList.remove('wobble'); }, 600);
-  });
-</script>
-
-</body>
-</html>
